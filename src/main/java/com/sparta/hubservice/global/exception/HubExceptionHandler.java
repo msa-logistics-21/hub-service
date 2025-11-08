@@ -1,8 +1,7 @@
 package com.sparta.hubservice.global.exception;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sparta.hubservice.global.response.ApiResponse;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -12,33 +11,33 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 @RestControllerAdvice
 public class HubExceptionHandler {
 
-    private final ObjectMapper objectMapper = new ObjectMapper();
-
-    /**
-     * 일반 예외 처리
-     */
-    @ExceptionHandler(Exception.class)
-    public ResponseEntity<ApiResponse<?>> handleGeneralException(Exception ex) {
-        log.error("[HubExceptionHandler] Unexpected error: {}", ex.getMessage(), ex);
-
-        ApiResponse<?> response = new ApiResponse<>(ErrorCode.HUB_ERROR);
-
+    @ExceptionHandler(HubException.class)
+    public ResponseEntity<ApiResponse<?>> handleHubException(HubException e) {
+        ErrorCode errorCode = e.getErrorCode();
         return ResponseEntity
-                .status(ErrorCode.HUB_ERROR.getStatus())
-                .body(response);
+                .status(errorCode.getStatus())
+                .body(new ApiResponse<>(errorCode));
     }
 
-    /**
-     * JSON 직렬화/역직렬화 에러 처리
-     */
-    @ExceptionHandler(JsonProcessingException.class)
-    public ResponseEntity<ApiResponse<?>> handleJsonProcessingException(JsonProcessingException ex) {
-        log.error("[HubExceptionHandler] JSON processing failed: {}", ex.getMessage(), ex);
-
-        ApiResponse<?> response = new ApiResponse<>(ErrorCode.HUB_JSON_PROCESSING_EXCEPTION);
-
+    @ExceptionHandler(EntityNotFoundException.class)
+    public ResponseEntity<ApiResponse<?>> handleNotFound(EntityNotFoundException e) {
         return ResponseEntity
-                .status(ErrorCode.HUB_JSON_PROCESSING_EXCEPTION.getStatus())
-                .body(response);
+                .status(ErrorCode.HUB_NOT_FOUND.getStatus().value())
+                .body(new ApiResponse<>(ErrorCode.HUB_NOT_FOUND));
+    }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<ApiResponse<?>> handleBadRequest(IllegalArgumentException e) {
+        return ResponseEntity
+                .status(ErrorCode.HUB_DUPLICATE_NAME.getStatus().value())
+                .body(new ApiResponse<>(ErrorCode.HUB_DUPLICATE_NAME));
+    }
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ApiResponse<?>> handleGeneral(Exception e) {
+        log.error("HUB_ERROR 발생", e);
+        return ResponseEntity
+                .status(ErrorCode.HUB_ERROR.getStatus().value())
+                .body(new ApiResponse<>(ErrorCode.HUB_ERROR));
     }
 }
