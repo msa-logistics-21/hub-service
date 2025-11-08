@@ -12,7 +12,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.sparta.hubservice.dto.request.*;
 import com.sparta.hubservice.dto.response.*;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -53,11 +52,21 @@ public class HubController {
 
     // 허브 리스트 조회
     @GetMapping
-    public ResponseEntity<ApiResponse<Page<GetHubResDto>>> getHubPage(
+    public ResponseEntity<ApiResponse<Page<GetHubPageResDto>>> getHubPage(
         @RequestParam(required = false) String searchParam,
-        @PageableDefault(size = 10, sort = { "createdAt", "updatedAt" }, direction = Sort.Direction.DESC) Pageable pageable
+        @PageableDefault(size = 10, sort = { "createdAt", "updatedAt" }, direction = Sort.Direction.ASC) Pageable pageable
     ) {
-        Page<GetHubResDto> response = hubService.getHubPage(searchParam, pageable);
+        Page<GetHubPageResDto> response = hubService.getHubPage(searchParam, pageable);
         return ResponseEntity.ok(new ApiResponse<>(response));
         }
+
+    // 허브 상세 조회
+    @GetMapping("/{hubId}")
+    public ResponseEntity<ApiResponse<GetHubDetailResDto>> getHubDetail(@PathVariable UUID hubId) {
+        GetHubDetailResDto response = hubService.getHubDetail(hubId);
+        return ResponseEntity.ok(new ApiResponse<>(response));
     }
+    }
+
+
+

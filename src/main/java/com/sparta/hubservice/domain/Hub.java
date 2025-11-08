@@ -7,6 +7,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.DynamicUpdate;
 
 import java.util.UUID;
 
@@ -21,7 +22,7 @@ public class Hub extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID hubId;
 
-    @Column(nullable = false, length = 100, unique = true)
+    @Column(nullable = false, length = 100)
     private String hubName;
 
     @Column(nullable = false)

@@ -3,13 +3,16 @@ package com.sparta.hubservice.repository;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.Order;
 import com.querydsl.core.types.OrderSpecifier;
+import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.core.types.dsl.PathBuilder;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.sparta.hubservice.domain.Hub;
 import com.sparta.hubservice.domain.QHub;
-import com.sparta.hubservice.dto.response.GetHubResDto;
-import com.sparta.hubservice.dto.response.QGetHubResDto;
+import com.sparta.hubservice.dto.response.GetHubDetailResDto;
+import com.sparta.hubservice.dto.response.GetHubPageResDto;
+import com.sparta.hubservice.dto.response.QGetHubDetailResDto;
+import com.sparta.hubservice.dto.response.QGetHubPageResDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -17,9 +20,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.support.PageableExecutionUtils;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 @RequiredArgsConstructor
 public class CustomHubRepositoryImpl implements CustomHubRepository {
@@ -32,7 +33,7 @@ public class CustomHubRepositoryImpl implements CustomHubRepository {
     QHub qHub = QHub.hub;
 
     @Override
-    public Page<GetHubResDto> findHubPage(String searchParam, Pageable pageable) {
+    public Page<GetHubPageResDto> findHubPage(String searchParam, Pageable pageable) {
 
         int pageSize = pageable.getPageSize();
         List<Integer> allowedPageSizes = Arrays.asList(10, 30, 50);
@@ -42,7 +43,7 @@ public class CustomHubRepositoryImpl implements CustomHubRepository {
 
         Pageable adjustedPageable = PageRequest.of(pageable.getPageNumber(), pageSize, pageable.getSort());
 
-        JPAQuery<GetHubResDto> jpaQuery = query.select(getHubProjection())
+        JPAQuery<GetHubPageResDto> jpaQuery = query.select(getHubProjection())
                 .from(qHub)
                 .where(whereExpression(searchParam))
                 .offset(adjustedPageable.getOffset())
@@ -60,7 +61,7 @@ public class CustomHubRepositoryImpl implements CustomHubRepository {
                 ));
             }
         } else {
-            jpaQuery.orderBy(qHub.createdAt.desc(), qHub.updatedAt.desc());
+            jpaQuery.orderBy(qHub.createdAt.asc(), qHub.updatedAt.asc());
         }
 
         JPAQuery<Long> cnt = query
@@ -68,13 +69,32 @@ public class CustomHubRepositoryImpl implements CustomHubRepository {
                 .from(qHub)
                 .where(whereExpression(searchParam));
 
-        List<GetHubResDto> results = jpaQuery.fetch();
+        List<GetHubPageResDto> results = jpaQuery.fetch();
 
         return PageableExecutionUtils.getPage(results, adjustedPageable, cnt::fetchOne);
     }
 
-    private QGetHubResDto getHubProjection() {
-        return new QGetHubResDto(
+    @Override
+    public Optional<GetHubDetailResDto> findHubDetail(UUID hubId) {
+        GetHubDetailResDto response = query.select(getHubDetailProjection())
+                .from(qHub)
+                .where(qHub.hubId.eq(hubId), qHub.deletedAt.isNull())
+                .fetchOne();
+
+        return Optional.ofNullable(response);
+    }
+
+    @Override
+    public boolean existsByHubName(String hubName) {
+        Long exist = query.select(qHub.count())
+                .from(qHub)
+                .where(qHub.hubName.eq(hubName),  qHub.deletedAt.isNull())
+                .fetchOne();
+        return exist != null && exist  > 0;
+    }
+
+    private QGetHubPageResDto getHubProjection() {
+        return new QGetHubPageResDto(
                 qHub.hubId,
                 qHub.hubName,
                 qHub.hubAddress,
@@ -83,8 +103,23 @@ public class CustomHubRepositoryImpl implements CustomHubRepository {
         );
     }
 
+    private QGetHubDetailResDto getHubDetailProjection() {
+        return new QGetHubDetailResDto(
+                qHub.hubId,
+                qHub.hubName,
+                Expressions.constant(1L), // 유저의 소속 허브에서 가져올 예정
+                qHub.hubAddress,
+                qHub.longitude,
+                qHub.latitude,
+                qHub.createdAt,
+                qHub.updatedAt
+        );
+    }
+
     private BooleanBuilder whereExpression(String searchParam) {
         BooleanBuilder booleanBuilder = new BooleanBuilder();
+
+        booleanBuilder.and(qHub.deletedAt.isNull());
 
         if(searchParam != null){
             booleanBuilder.and(

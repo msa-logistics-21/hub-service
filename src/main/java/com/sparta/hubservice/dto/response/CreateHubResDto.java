@@ -1,5 +1,6 @@
 package com.sparta.hubservice.dto.response;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -15,17 +16,16 @@ public class CreateHubResDto {
     private String hubAddress;
     private Double longitude;
     private Double latitude;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
 
-    public CreateHubResDto(UUID hubId, String hubName, Long userId, String hubAddress, Double longitude, Double latitude, LocalDateTime createdAt, LocalDateTime updatedAt) {
+    public CreateHubResDto(UUID hubId, String hubName, Long userId, String hubAddress, Double longitude, Double latitude, LocalDateTime createdAt) {
         this.hubId = hubId;
         this.hubName = hubName;
         this.userId = userId;
         this.hubAddress = hubAddress;
         this.longitude = longitude;
         this.latitude = latitude;
-        this.createdAt = getCreatedAt();
-        this.updatedAt = getUpdatedAt();
+        this.createdAt = LocalDateTime.now();
     }
 }

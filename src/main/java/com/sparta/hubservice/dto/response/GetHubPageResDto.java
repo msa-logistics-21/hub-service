@@ -5,13 +5,12 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Getter
 @Builder
 @NoArgsConstructor
-public class GetHubResDto {
+public class GetHubPageResDto {
     private UUID hubId;
     private String hubName;
     private String hubAddress;
@@ -19,7 +18,7 @@ public class GetHubResDto {
     private Double latitude;
 
     @QueryProjection
-    public GetHubResDto(UUID hubId, String  hubName, String hubAddress, Double longitude, Double latitude) {
+    public GetHubPageResDto(UUID hubId, String  hubName, String hubAddress, Double longitude, Double latitude) {
         this.hubId = hubId;
         this.hubName = hubName;
         this.hubAddress = hubAddress;
