@@ -13,6 +13,7 @@ import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,6 +26,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class HubService {
     private final HubRepository hubRepository;
+    private final RedisTemplate<String, Object> redisTemplate;
 
     // todo : 유저 관련 처리 (마스터 유저만 생성, 수정, 삭제 가능)
 
@@ -87,7 +89,6 @@ public class HubService {
 
     // 허브 삭제
     @Transactional
-    @CacheEvict(cacheNames = {"hubCache"}, allEntries = true)
     public DeleteHubResDto deleteHub(DeleteHubReqDto request) {
 
         List<UUID> requestedIds = request.getHubIds();
@@ -101,6 +102,9 @@ public class HubService {
                             hub.delete(1L); // 수정 예정
                             hubRepository.save(hub);
                             deletedIds.add(hub.getHubId());
+
+                            String cacheKey = "hubCache::" + hubId;
+                            redisTemplate.delete(cacheKey);
 
                         } else {
                             alreadyDeletedIds.add(hub.getHubId());
