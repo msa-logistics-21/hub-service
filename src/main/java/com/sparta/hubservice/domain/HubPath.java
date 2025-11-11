@@ -35,4 +35,13 @@ public class HubPath extends BaseEntity {
 
     @Column(nullable = false)
     private Integer distance;
+
+    public static HubPath ofNewHubPath(Hub startHub, Hub endHub, int duration, int distance) {
+        return HubPath.builder()
+                .startHub(startHub)
+                .endHub(endHub)
+                .duration(duration)
+                .distance(distance)
+                .build();
+    }
 }
