@@ -22,7 +22,7 @@ public class HubInitializer implements ApplicationRunner {
     @Override
     public void run(ApplicationArguments args) {
         if (hubRepository.count() > 0) {
-            log.info("허브 데이터가 이미 초기화되었니다.");
+            log.info("허브 데이터가 이미 초기화 되었습니다.");
             return;
         }
 
