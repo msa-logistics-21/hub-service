@@ -9,8 +9,6 @@ import com.sparta.hubservice.global.exception.ErrorCode;
 import com.sparta.hubservice.global.exception.HubException;
 import com.sparta.hubservice.repository.HubRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -156,6 +154,11 @@ public class HubService {
                 .hubIds(deletedIds)
                 .message(message)
                 .build();
+    }
+
+    // 허브 존재 여부 확인 (삭제되지 않은 허브만)
+    public boolean existsHub(UUID hubId) {
+        return hubRepository.existsByHubIdAndDeletedAtIsNull(hubId);
     }
 
 
