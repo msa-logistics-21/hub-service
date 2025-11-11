@@ -20,7 +20,7 @@ public class HubInitializer implements ApplicationRunner {
     @Override
     public void run(ApplicationArguments args) {
         if (hubRepository.count() > 0) {
-            log.info("허브 데이터 존재. 초기화 스킵");
+            log.info("허브 데이터가 이미 초기화되었니다.");
             return;
         }
 
@@ -47,7 +47,7 @@ public class HubInitializer implements ApplicationRunner {
         );
 
         hubRepository.saveAll(hubs);
-        log.info("허브 데이터 초기화 완료 - 총 {}건 저장됨", hubs.size());
+        log.info("허브 데이터 초기화 완료 (총 {}개 허브)", hubs.size());
     }
 }
 
