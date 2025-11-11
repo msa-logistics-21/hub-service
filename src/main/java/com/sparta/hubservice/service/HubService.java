@@ -161,6 +161,13 @@ public class HubService {
         return hubRepository.existsByHubIdAndDeletedAtIsNull(hubId);
     }
 
+    // 업체 조회에서 소속 허브명 뿌려주기
+    public String getHubNameById(UUID hubId) {
+        return hubRepository.findByHubIdAndDeletedAtIsNull(hubId)
+                .map(Hub::getHubName)
+                .orElse(null);
+    }
+
 
 
 }

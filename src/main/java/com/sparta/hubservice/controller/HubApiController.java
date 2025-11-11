@@ -20,4 +20,9 @@ public class HubApiController {
     public boolean existsHub(@PathVariable UUID hubId) {
         return hubService.existsHub(hubId);
     }
+
+    @GetMapping("/{hubId}/name")
+    public String getHubName(@PathVariable UUID hubId) {
+        return hubService.getHubNameById(hubId);
+    }
 }
