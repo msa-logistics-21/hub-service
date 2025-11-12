@@ -33,7 +33,7 @@ public class CustomHubRepositoryImpl implements CustomHubRepository {
     QHub qHub = QHub.hub;
 
     @Override
-    public Page<GetHubPageResDto> findHubPage(String searchParam, Pageable pageable) {
+    public Page<GetHubPageResDto> findHubPage(String searchParam, Pageable pageable, String role) {
 
         int pageSize = pageable.getPageSize();
         List<Integer> allowedPageSizes = Arrays.asList(10, 30, 50);
@@ -45,7 +45,7 @@ public class CustomHubRepositoryImpl implements CustomHubRepository {
 
         JPAQuery<GetHubPageResDto> jpaQuery = query.select(getHubProjection())
                 .from(qHub)
-                .where(whereExpression(searchParam))
+                .where(whereExpression(searchParam, role))
                 .offset(adjustedPageable.getOffset())
                 .limit(adjustedPageable.getPageSize());
 
@@ -67,7 +67,7 @@ public class CustomHubRepositoryImpl implements CustomHubRepository {
         JPAQuery<Long> cnt = query
                 .select(qHub.count())
                 .from(qHub)
-                .where(whereExpression(searchParam));
+                .where(whereExpression(searchParam, role));
 
         List<GetHubPageResDto> results = jpaQuery.fetch();
 
@@ -75,10 +75,15 @@ public class CustomHubRepositoryImpl implements CustomHubRepository {
     }
 
     @Override
-    public Optional<GetHubDetailResDto> findHubDetail(UUID hubId) {
+    public Optional<GetHubDetailResDto> findHubDetail(UUID hubId, String role) {
         GetHubDetailResDto response = query.select(getHubDetailProjection())
                 .from(qHub)
                 .where(qHub.hubId.eq(hubId), qHub.deletedAt.isNull())
+                .where(
+                        "MASTER".equals(role)
+                                ? qHub.hubId.eq(hubId)
+                                : qHub.hubId.eq(hubId).and(qHub.deletedAt.isNull())
+                )
                 .fetchOne();
 
         return Optional.ofNullable(response);
@@ -116,8 +121,13 @@ public class CustomHubRepositoryImpl implements CustomHubRepository {
         );
     }
 
-    private BooleanBuilder whereExpression(String searchParam) {
+    private BooleanBuilder whereExpression(String searchParam, String role) {
         BooleanBuilder booleanBuilder = new BooleanBuilder();
+
+        if (!"MASTER".equals(role)) {
+            // 마스터는 삭제된 것도 조회 가능
+            booleanBuilder.and(qHub.deletedAt.isNull());
+        }
 
         booleanBuilder.and(qHub.deletedAt.isNull());
 
