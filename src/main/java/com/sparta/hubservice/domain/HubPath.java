@@ -1,5 +1,6 @@
 package com.sparta.hubservice.domain;
 
+import com.sparta.hubservice.dto.request.UpdateHubPathReqDto;
 import com.sparta.hubservice.global.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -43,5 +44,10 @@ public class HubPath extends BaseEntity {
                 .duration(duration)
                 .distance(distance)
                 .build();
+    }
+
+    public void update(UpdateHubPathReqDto request) {
+        if (request.getDistance() != null) this.distance = request.getDistance();
+        if (request.getDuration() != null) this.duration = request.getDuration();
     }
 }

@@ -13,6 +13,9 @@ public enum ErrorCode {
     HUB_ERROR(2000, HttpStatus.INTERNAL_SERVER_ERROR, "허브 서비스 요청 중 내부 서버 오류가 발생했습니다."),
     HUB_NOT_FOUND(2001, HttpStatus.NOT_FOUND, "존재하지 않는 허브입니다."),
     HUB_DUPLICATE_NAME(2002, HttpStatus.INTERNAL_SERVER_ERROR, "중복된 허브 이름입니다."),
+
+    HUB_PATH_NOT_FOUND(3000, HttpStatus.NOT_FOUND, "허브 경로를 찾을 수 없습니다."),
+    HUB_PATH_DUPLICATE(3001, HttpStatus.CONFLICT, "이미 동일한 허브 경로가 존재합니다."),
     ;
     private final int code;
     private final HttpStatus status;
