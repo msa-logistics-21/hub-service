@@ -14,6 +14,9 @@ public enum ErrorCode {
     HUB_NOT_FOUND(2001, HttpStatus.NOT_FOUND, "존재하지 않는 허브입니다."),
     HUB_DUPLICATE_NAME(2002, HttpStatus.INTERNAL_SERVER_ERROR, "중복된 허브 이름입니다."),
     HUB_NOT_AUTH(2003, HttpStatus.UNAUTHORIZED, "마스터 유저만 허브 생성/수정/삭제 작업이 가능합니다."),
+
+    HUB_PATH_NOT_FOUND(2001, HttpStatus.NOT_FOUND, "존재하지 않는 허브입니다."),
+    HUB_PATH_DUPLICATE_NAME(2002, HttpStatus.INTERNAL_SERVER_ERROR, "중복된 허브 이름입니다."),
     ;
     private final int code;
     private final HttpStatus status;
