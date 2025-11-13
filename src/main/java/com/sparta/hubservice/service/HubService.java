@@ -27,24 +27,27 @@ public class HubService {
     private final HubRepository hubRepository;
     private final RedisTemplate<String, Object> redisTemplate;
 
-    // todo : 유저 관련 처리 (마스터 유저만 생성, 수정, 삭제 가능)
-
     // 허브 전체 조회
     @Transactional(readOnly = true)
-    public Page<GetHubPageResDto> getHubPage(String searchParam, Pageable pageable) {
-        return hubRepository.findHubPage(searchParam, pageable);
+    public Page<GetHubPageResDto> getHubPage(String searchParam, Pageable pageable, String role) {
+        return hubRepository.findHubPage(searchParam, pageable, role);
     }
 
     // 허브 상세 조회
     @Transactional(readOnly = true)
     @Cacheable(cacheNames = {"hubCache"}, key = "args[0]")
-    public GetHubDetailResDto getHubDetail(UUID hubId) {
-        return hubRepository.findHubDetail(hubId)
+    public GetHubDetailResDto getHubDetail(UUID hubId, String role) {
+        return hubRepository.findHubDetail(hubId, role)
                 .orElseThrow(() -> new HubException(ErrorCode.HUB_NOT_FOUND));
     }
 
     // 허브 생성
-    public CreateHubResDto createHub(CreateHubReqDto request) {
+    public CreateHubResDto createHub(CreateHubReqDto request, String role, Long userId) {
+
+        if (!role.equals("MASTER")) {
+            throw new HubException(ErrorCode.HUB_NOT_AUTH);
+        }
+
         if (hubRepository.existsByHubName(request.getHubName())) {
             throw new HubException(ErrorCode.HUB_DUPLICATE_NAME);
         }
@@ -61,7 +64,7 @@ public class HubService {
         GetHubDetailResDto cacheDto = new GetHubDetailResDto(
                 hub.getHubId(),
                 hub.getHubName(),
-                request.getUserId(),
+                userId,
                 hub.getHubAddress(),
                 hub.getLongitude(),
                 hub.getLatitude(),
@@ -75,7 +78,7 @@ public class HubService {
         return new CreateHubResDto(
                 hub.getHubId(),
                 hub.getHubName(),
-                request.getUserId(),
+                userId,
                 hub.getHubAddress(),
                 hub.getLongitude(),
                 hub.getLatitude(),
@@ -85,7 +88,11 @@ public class HubService {
 
     // 허브 수정
     @Transactional
-    public UpdateHubResDto updateHub(UUID hubId, UpdateHubReqDto request) {
+    public UpdateHubResDto updateHub(UUID hubId, UpdateHubReqDto request, String role, Long userId) {
+        if (!role.equals("MASTER")) {
+            throw new HubException(ErrorCode.HUB_NOT_AUTH);
+        }
+
         Hub hub = hubRepository.findById(hubId)
                 .orElseThrow(() -> new HubException(ErrorCode.HUB_NOT_FOUND));
 
@@ -95,7 +102,7 @@ public class HubService {
         GetHubDetailResDto cacheDto = new GetHubDetailResDto(
                 hub.getHubId(),
                 hub.getHubName(),
-                request.getUserId(),
+                userId,
                 hub.getHubAddress(),
                 hub.getLongitude(),
                 hub.getLatitude(),
@@ -107,7 +114,7 @@ public class HubService {
         return new UpdateHubResDto(
                 hub.getHubId(),
                 hub.getHubName(),
-                request.getUserId(),
+                userId,
                 hub.getHubAddress(),
                 hub.getLongitude(),
                 hub.getLatitude(),
@@ -118,7 +125,10 @@ public class HubService {
 
     // 허브 삭제
     @Transactional
-    public DeleteHubResDto deleteHub(DeleteHubReqDto request) {
+    public DeleteHubResDto deleteHub(DeleteHubReqDto request, String role, Long userId) {
+        if (!role.equals("MASTER")) {
+            throw new HubException(ErrorCode.HUB_NOT_AUTH);
+        }
 
         List<UUID> requestedIds = request.getHubIds();
         List<UUID> deletedIds = new ArrayList<>();
@@ -128,7 +138,7 @@ public class HubService {
             hubRepository.findById(hubId)
                     .ifPresentOrElse(hub -> {
                         if (hub.getDeletedAt() == null) {
-                            hub.delete(1L); // 수정 예정
+                            hub.delete(userId); // 수정 예정
                             hubRepository.save(hub);
                             deletedIds.add(hub.getHubId());
 

@@ -24,3 +24,12 @@ spring:
       username: default
       password: systempass
 
+# 토큰 검증용 시크릿키
+jwt:
+  secret:
+    key: ${JWT_SECRET_KEY}
+
+logging :
+  level:
+    org.springframework.cloud.gateway: DEBUG
+
